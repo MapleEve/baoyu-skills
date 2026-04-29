@@ -1,6 +1,6 @@
 ---
 name: baoyu-markdown-to-html
-description: Converts Markdown to styled HTML with WeChat-compatible themes. Supports code highlighting, math, PlantUML, footnotes, alerts, infographics, and optional bottom citations for external links. Use when user asks for "markdown to html", "convert md to html", "md 转 html", "微信外链转底部引用", or needs styled HTML output from markdown.
+description: Convert Markdown to HTML
 version: 1.56.1
 metadata:
   openclaw:
@@ -230,7 +230,7 @@ Supports YAML frontmatter for metadata:
 ---
 title: Article Title
 author: Author Name
-description: Article summary
+description: Convert Markdown to HTML
 ---
 ```
 
