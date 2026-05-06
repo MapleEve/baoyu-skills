@@ -1,6 +1,6 @@
 ---
 name: baoyu-imagine
-description: AI image generation from text
+description: AI image generation from text (API keys or Codex CLI subscription)
 version: 1.58.0
 metadata:
   openclaw:
@@ -163,12 +163,40 @@ Each provider has its own quirks (model families, size rules, ref support, limit
 | OpenRouter (multimodal models, `/chat/completions` flow) | `references/providers/openrouter.md` |
 | Replicate (nano-banana, Seedream, Wan) | `references/providers/replicate.md` |
 
+## Codex CLI Provider (No-API-Key Fallback)
+
+When no provider API keys are configured, use Codex CLI with a ChatGPT Plus/Pro subscription.
+
+**Prerequisites**: Codex CLI installed (`npm install -g @openai/codex`) + logged in (`codex login`)
+
+**Auth mechanism**: Codex uses ChatGPT OAuth (stored in `~/.codex/auth.json`), NOT an OpenAI API key. The `access_token` from auth.json is a ChatGPT subscription JWT — it cannot be used directly with `api.openai.com/v1/`. Codex routes requests through `chatgpt.com/backend-api/codex`.
+
+**Command pattern**:
+```bash
+touch /tmp/marker_img
+timeout 240 codex exec --full-auto "Generate image: {prompt}. Save PNG to /tmp/output.png and confirm saved."
+# Fallback if output path not written by codex:
+if [ ! -f /tmp/output.png ]; then
+  newest=$(find ~/.codex/generated_images -name "*.png" -newer /tmp/marker_img | tail -1)
+  [ -n "$newest" ] && cp "$newest" /tmp/output.png
+fi
+```
+
+**Limitations**:
+- Sequential only — no batch parallelism
+- ~120–240s per image (codex exec timeout)
+- ChatGPT rate limits apply
+- Image also lands in `~/.codex/generated_images/` automatically
+
+**Auto-detection**: If `OPENAI_API_KEY`, `GOOGLE_API_KEY`, `DASHSCOPE_API_KEY`, and all other provider keys are absent, suggest this approach to the user.
+
 ## Provider Selection
 
 1. `--ref` provided + no `--provider` → auto-select Google → OpenAI → Azure → OpenRouter → Replicate → Seedream → MiniMax (MiniMax's subject reference is more specialized toward character/portrait consistency)
 2. `--provider` specified → use it (if `--ref`, must be google/openai/azure/openrouter/replicate/seedream/minimax)
 3. Only one API key present → use that provider
 4. Multiple keys → default priority: Google → OpenAI → Azure → OpenRouter → DashScope → Z.AI → MiniMax → Replicate → Jimeng → Seedream
+5. No API keys at all → suggest Codex CLI provider (see above section)
 
 ## Quality Presets
 
